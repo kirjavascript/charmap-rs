@@ -1,12 +1,6 @@
-// https://lib.rs/crates/x11-clipboard
-// clipboard_simple
-//
-// use orbtk::prelude::*;
-// emoji / kaomoji / textgen
+// kaomoji / textgen / unicode
 // keymap to chars
 // emoji/unicode stuff
-//
-// copy to clipboard and exit
 
 #![feature(once_cell)]
 use gtk::prelude::*;
@@ -56,10 +50,9 @@ fn ui (app: &Application) {
     output.set_hexpand(true);
 
     let copy = Button::with_label("clipboard & exit");
-    copy.connect_button_press_event(clone!(output => move |_,_| {
-        let clipboard = gtk::Clipboard::get(&gdk::SELECTION_CLIPBOARD);
-        clipboard.set_text(&output.get_text());
-        gtk::main_quit();
+    copy.connect_button_press_event(clone!(output, window => move |_,_| {
+        to_clipboard(&output.get_text());
+        window.close();
         Inhibit(false)
     }));
 
@@ -94,6 +87,21 @@ fn style() {
         &provider,
         gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
     );
+}
+
+fn to_clipboard(text: &str) {
+    use std::io::prelude::*;
+    use std::process::{Command, Stdio};
+    Command::new("xsel")
+        .arg("--clipboard")
+        .arg("--input")
+        .stdin(Stdio::piped())
+        .spawn()
+        .unwrap()
+        .stdin
+        .unwrap()
+        .write_all(text.as_bytes())
+        .ok();
 }
 
 pub fn add_text(text: &str, entry: &gtk::Entry) {

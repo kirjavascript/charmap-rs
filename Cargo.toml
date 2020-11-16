@@ -19,3 +19,5 @@ version = ""
 
 [dependencies]
 tinyjson = "2"
+x11-clipboard = "0.5.1"
+terminal-clipboard = "0.1.1"
