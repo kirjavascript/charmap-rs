@@ -1,4 +1,4 @@
-// kaomoji / textgen / unicode
+// kaomoji / unicode
 // keymap to chars
 // emoji/unicode stuff
 
@@ -7,6 +7,7 @@ use gtk::prelude::*;
 use gio::prelude::*;
 
 mod emoji;
+mod textgen;
 mod clone;
 
 use gtk::{
@@ -65,6 +66,7 @@ fn ui (app: &Application) {
     let notebook = Notebook::new();
     notebook.set_vexpand(true);
 
+    textgen::textgen(&notebook, &output);
     emoji::emoji(&notebook, &output);
 
     wrapper.add(&notebook);
@@ -91,11 +93,10 @@ fn style() {
 
 fn to_clipboard(text: &str) {
     use std::io::prelude::*;
-    use std::process::{Command, Stdio};
-    Command::new("xsel")
+    std::process::Command::new("xsel")
         .arg("--clipboard")
         .arg("--input")
-        .stdin(Stdio::piped())
+        .stdin(std::process::Stdio::piped())
         .spawn()
         .unwrap()
         .stdin
