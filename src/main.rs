@@ -40,6 +40,7 @@ fn main() {
 }
 
 fn ui (app: &Application) {
+    style();
     let window = Window::new(WindowType::Toplevel);
     app.add_window(&window);
     window.set_title("charmap-rs");
@@ -58,6 +59,7 @@ fn ui (app: &Application) {
     copy.connect_button_press_event(clone!(output => move |_,_| {
         let clipboard = gtk::Clipboard::get(&gdk::SELECTION_CLIPBOARD);
         clipboard.set_text(&output.get_text());
+        gtk::main_quit();
         Inhibit(false)
     }));
 
@@ -82,6 +84,17 @@ fn ui (app: &Application) {
 
 }
 
+fn style() {
+    let provider = gtk::CssProvider::new();
+    provider
+        .load_from_data(include_str!("./style.css").as_bytes())
+        .expect("Failed to load CSS");
+    gtk::StyleContext::add_provider_for_screen(
+        &gdk::Screen::get_default().expect("Error initializing gtk css provider."),
+        &provider,
+        gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
+    );
+}
 
 pub fn add_text(text: &str, entry: &gtk::Entry) {
     entry.set_text(&format!("{}{}", entry.get_text(), text));
