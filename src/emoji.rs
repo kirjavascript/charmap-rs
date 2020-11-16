@@ -16,25 +16,30 @@ use gtk::{
     Notebook,
     Label,
     Entry,
+    Button,
 };
 
 pub fn emoji(notebook: &Notebook, output: &Entry) {
     let container = gtk::Box::new(gtk::Orientation::Vertical, 0);
     let list = gtk::Box::new(gtk::Orientation::Vertical, 10);
 
+    let adjust: Option<&gtk::Adjustment> = None;
+    let scroll = gtk::ScrolledWindow::new(adjust, adjust);
+    scroll.set_vexpand(true);
+
     let entry = Entry::new();
     entry.set_placeholder_text(Some("search emoji.."));
 
     container.add(&entry);
-    container.add(&list);
+    scroll.add(&list);
+    container.add(&scroll);
 
-    render("", &list);
+    render("".to_string(), &list, false);
 
     let list = list.clone();
     entry.connect_property_text_notify(move |entry| {
-        // clear list
         let text = entry.get_buffer().get_text();
-        render(&text, &list);
+        render(text, &list, false);
     });
 
 
@@ -60,20 +65,16 @@ fn search(text: &str) -> Vec<Emoji> {
                 desc: desc.clone(),
             });
         }
-
-        if emojis.len() > 10 {
-            break;
-        }
     }
 
     emojis
 }
 
-fn render(text: &str, list: &gtk::Box) {
+fn render(text: String, list: &gtk::Box, showmore: bool) {
     list.foreach(|x| list.remove(x));
     let emojis = search(&text);
 
-    for emoji in emojis {
+    for (i, emoji) in emojis.iter().enumerate() {
         let glyph = Label::new(Some(&emoji.glyph));
         let desc = Label::new(Some(&emoji.desc));
         let row = gtk::Box::new(gtk::Orientation::Horizontal, 10);
@@ -81,6 +82,16 @@ fn render(text: &str, list: &gtk::Box) {
         row.add(&glyph);
         row.add(&desc);
         list.add(&row);
+        if !showmore && i > 20 {
+            let label = &format!("show {} more", emojis.len() - 20);
+            let clicky = Button::with_label(label);
+            list.add(&clicky);
+            let list = list.clone();
+            clicky.connect_clicked(move |_| {
+                render(text.clone(), &list, true);
+            });
+            break;
+        }
     }
     list.show_all();
 }
