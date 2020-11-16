@@ -1,9 +1,12 @@
 // https://lib.rs/crates/x11-clipboard
+// clipboard_simple
+//
 // use orbtk::prelude::*;
 // emoji / kaomoji / textgen
 // keymap to chars
 // emoji/unicode stuff
 
+#![feature(once_cell)]
 use gtk::prelude::*;
 use gio::prelude::*;
 
