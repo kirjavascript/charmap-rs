@@ -5,12 +5,15 @@
 // emoji / kaomoji / textgen
 // keymap to chars
 // emoji/unicode stuff
+//
+// copy to clipboard and exit
 
 #![feature(once_cell)]
 use gtk::prelude::*;
 use gio::prelude::*;
 
 mod emoji;
+mod clone;
 
 use gtk::{
     Application,
@@ -19,6 +22,7 @@ use gtk::{
     WindowPosition,
     Notebook,
     Entry,
+    Button,
 };
 
 fn main() {
@@ -44,9 +48,24 @@ fn ui (app: &Application) {
     window.set_type_hint(gdk::WindowTypeHint::Dialog);
 
     let wrapper = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    let output_wrapper = gtk::Box::new(gtk::Orientation::Horizontal, 0);
 
     let output = Entry::new();
     output.set_has_frame(false);
+    output.set_hexpand(true);
+
+    let copy = Button::with_label("clipboard & exit");
+    copy.connect_button_press_event(clone!(output => move |_,_| {
+        let clipboard = gtk::Clipboard::get(&gdk::SELECTION_CLIPBOARD);
+        clipboard.set_text(&output.get_text());
+        Inhibit(false)
+    }));
+
+    let clear = Button::with_label("clear");
+    clear.connect_button_press_event(clone!(output => move |_,_| {
+        output.set_text("");
+        Inhibit(false)
+    }));
 
     let notebook = Notebook::new();
     notebook.set_vexpand(true);
@@ -54,7 +73,16 @@ fn ui (app: &Application) {
     emoji::emoji(&notebook, &output);
 
     wrapper.add(&notebook);
-    wrapper.add(&output);
+    wrapper.add(&output_wrapper);
+    output_wrapper.add(&output);
+    output_wrapper.add(&clear);
+    output_wrapper.add(&copy);
     window.add(&wrapper);
     window.show_all();
+
+}
+
+
+pub fn add_text(text: &str, entry: &gtk::Entry) {
+    entry.set_text(&format!("{}{}", entry.get_text(), text));
 }
