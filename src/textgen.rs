@@ -11,6 +11,9 @@ use super::{clone, add_text};
 //     emoji.clone()
 // });
 
+static ALPHABET: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789()";
+static AESTHETIC: &str = "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ０１２３４５６７８９";
+
 use gtk::{
     Notebook,
     Label,
@@ -22,16 +25,23 @@ use gtk::{
 
 pub fn textgen(notebook: &Notebook, output: &Entry) {
     let container = gtk::Box::new(gtk::Orientation::Vertical, 0);
+
+
     let entry = Entry::new();
+    let ae_button = Button::with_label("aesthetic");
 
     container.add(&entry);
+    container.add(&ae_button);
+
+    // use hashmap for lookups?
 
     // buttons with the text on
     //
     // GLOBAL
 
-    entry.connect_property_text_notify(move |entry| {
-    });
+    entry.connect_property_text_notify(clone!(ae_button => move |entry| {
+        ae_button.set_label(&entry.get_text());
+    }));
 
     let label = Label::new(Some("textgen"));
     notebook.append_page(&container, Some(&label));

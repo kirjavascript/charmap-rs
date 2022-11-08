@@ -1,23 +1,9 @@
 [package]
 name = "charmap-rs"
 version = "0.1.0"
-authors = ["kirjava"]
-edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies.gtk]
-version = "0.9.0"
-features = ["v3_16"]
-
-[dependencies.gio]
-version = ""
-features = ["v2_44"]
-
-[dependencies.gdk]
-version = ""
+edition = "2021"
 
 [dependencies]
-tinyjson = "2"
-x11-clipboard = "0.5.1"
-terminal-clipboard = "0.1.1"
+egui = "0.19.0"
+eframe = { version = "0.19.0", features = ["persistence"] }
+copypasta-ext = "0.3.9"
