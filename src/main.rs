@@ -29,22 +29,29 @@ impl Default for CharMap {
 }
 
 // left clie to add, right click to copy and close
+// custom charcode
+// hover charcode info
 
 impl eframe::App for CharMap {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 ☺️ 😊");
-            ui.label("ayy");
-            ui.code("😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 ☺️ 😊");
+
+                ui.add(egui::TextEdit::singleline(&mut self.input).desired_width(999.0));
 
             match self.mode {
                 Mode::Emoji => {
 
+                    egui::ScrollArea::vertical()
+                        .show_viewport(ui, |ui, viewport| {
+                            ui.label((9786..20000).map(|c| char::from_u32(c).unwrap()).collect::<String>());
+                        });
+
 
                 },
             }
-            ui.text_edit_singleline(&mut self.input);
 
+        });
+        egui::TopBottomPanel::bottom("copy / input").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 if ui.button("copy").clicked() {
                     clipboard::set(self.input.to_owned());
@@ -53,6 +60,7 @@ impl eframe::App for CharMap {
                     clipboard::set(self.input.to_owned());
                     _frame.close();
                 }
+                ui.add(egui::TextEdit::singleline(&mut self.input).desired_width(999.0));
             });
         });
     }
