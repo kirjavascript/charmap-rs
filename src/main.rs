@@ -15,8 +15,11 @@ struct CharMap {
     mode: Mode,
 }
 
+#[derive(Debug, PartialEq)]
 enum Mode {
     Emoji,
+    Kaomoji,
+    Misc,
 }
 
 impl Default for CharMap {
@@ -28,26 +31,45 @@ impl Default for CharMap {
     }
 }
 
-// left clie to add, dblclick to copy and close
+// left clie to copy, dblclick to copy and close, right click to add to line
 // custom charcode
 // emoji
 // kaomoji
 // hover charcode info
+// box chars
 
 impl eframe::App for CharMap {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::TopBottomPanel::top("mode select").show(ctx, |ui| {
+            ui.horizontal(|ui| {
+                use Mode::*;
+                for mode in [Emoji, Kaomoji, Misc] {
+                    let text = format!("{:?}", mode);
+                    let color = if self.mode == mode {
+                        egui::Color32::from_rgb(1, 93, 130)
+                    } else {
+                        egui::Color32::DARK_GRAY
+                    };
+
+                    if ui.add(egui::Button::new(text).fill(color)).clicked() {
+                        self.mode = mode;
+                    }
+                }
+            });
+        });
+
         egui::CentralPanel::default().show(ctx, |ui| {
 
             match self.mode {
                 Mode::Emoji => {
 
-                    //         ui.label((9786..20000).map(|c| char::from_u32(c).unwrap()).collect::<String>());
                     let font_id = egui::FontId::proportional(45.0);
                     egui::ScrollArea::vertical().show(ui, |ui| {
                         ui.horizontal_wrapped(|ui| {
                             ui.spacing_mut().item_spacing = egui::Vec2::splat(2.0);
 
-                            for chr in (0x1f600..0x1f620).map(|c| char::from_u32(c).unwrap()) {
+                            for i in 0x1f600..0x1f620 {
+                                let chr = char::from_u32(i).unwrap();
 
                                 let button = egui::Button::new(
                                     egui::RichText::new(chr.to_string()).font(font_id.clone()),
@@ -55,10 +77,7 @@ impl eframe::App for CharMap {
                                     .frame(false);
 
                                 let tooltip_ui = |ui: &mut egui::Ui| {
-                                    ui.label(
-                                        egui::RichText::new(chr.to_string()).font(font_id.clone()),
-                                    );
-                                    ui.label(format!("{}\nU+{:X}\n\nClick to copy", "name", chr as u32));
+                                    ui.label(format!("U+{:X}", chr as u32));
                                 };
 
                                 if ui.add(button).on_hover_ui(tooltip_ui).clicked() {
@@ -69,8 +88,8 @@ impl eframe::App for CharMap {
                     });
 
                 },
+                _ => {},
             }
-
         });
         egui::TopBottomPanel::bottom("copy / input").show(ctx, |ui| {
             ui.horizontal(|ui| {
