@@ -26,12 +26,13 @@ impl Default for CharMap {
     fn default() -> Self {
         Self {
             input: "".to_string(),
-            mode: Mode::Emoji,
+            mode: Mode::Misc,
         }
     }
 }
 
-// custom charcode
+// text convert
+// custom charcode / char explorer / read_chars
 // box chars
 
 impl eframe::App for CharMap {
@@ -55,42 +56,39 @@ impl eframe::App for CharMap {
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
+
             match self.mode {
                 Mode::Emoji => {
-                    let font_id = egui::FontId::proportional(45.0);
                     egui::ScrollArea::vertical().show(ui, |ui| {
                         ui.horizontal_wrapped(|ui| {
                             ui.spacing_mut().item_spacing = egui::Vec2::splat(2.0);
 
                             for i in 0x1f600..0x1f620 {
-                                let chr = char::from_u32(i).unwrap();
-
-                                let button = egui::Button::new(
-                                    egui::RichText::new(chr.to_string()).font(font_id.clone()),
-                                )
-                                    .frame(false);
-
-                                let tooltip_ui = |ui: &mut egui::Ui| {
-                                    ui.label(format!("U+{:X}", chr as u32));
-                                };
-
-                                let response = ui.add(button).on_hover_ui(tooltip_ui);
-
-                                if response.clicked() {
-                                    clipboard::set(chr.to_string());
-                                }
-                                if response.double_clicked() {
-                                    _frame.close();
-                                }
-
-                                if response.secondary_clicked() {
-                                    self.input.push_str(&chr.to_string());
-                                }
-
+                                let chr = char::from_u32(i).unwrap().to_string();
+                                self.render_char(ui, &chr, &chr);
                             }
                         });
                     });
 
+                },
+                Mode::Misc => {
+                    egui::ScrollArea::vertical().show(ui, |ui| {
+                        ui.horizontal_wrapped(|ui| {
+                            let list = [
+                                ("ZWJ", 0x200b),
+                                ("BELL", 0x7),
+                            ];
+                            for (name, index) in list {
+                                self.render_char(ui, name, &char::from_u32(index).unwrap().to_string());
+                            }
+
+                            for chr in [
+                                "🎉", "✴", "✯", "★", "🗲", "✿", "✧", "♥", "❤", "❥", "～", "～́̀", "ツ",
+                            ] {
+                                self.render_char(ui, &chr, &chr);
+                            }
+                        });
+                    });
                 },
                 _ => {},
             }
@@ -100,12 +98,35 @@ impl eframe::App for CharMap {
                 if ui.button("copy").clicked() {
                     clipboard::set(self.input.to_owned());
                 }
-                if ui.button("copy & quit").clicked() {
-                    clipboard::set(self.input.to_owned());
+                if ui.button("quit").clicked() {
                     _frame.close();
                 }
                 ui.add(egui::TextEdit::singleline(&mut self.input).desired_width(999.0));
             });
         });
     }
+
+}
+
+
+impl CharMap {
+    fn render_char(&mut self, ui: &mut egui::Ui, name: &str, text: &str) {
+
+        let button = egui::Button::new(
+            egui::RichText::new(name.to_string()).font(egui::FontId::proportional(45.0)),
+        )
+            .frame(false);
+
+        let response = ui.add(button).on_hover_ui(|ui| {
+            ui.label(format!("U+{:X}", text.chars().next().unwrap() as u32));
+        });
+
+        if response.clicked() {
+            clipboard::set(text.to_string());
+        }
+        if response.secondary_clicked() {
+            self.input.push_str(&text.to_string());
+        }
+    }
+
 }
