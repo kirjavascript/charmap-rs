@@ -31,11 +31,7 @@ impl Default for CharMap {
     }
 }
 
-// left clie to copy, dblclick to copy and close, right click to add to line
 // custom charcode
-// emoji
-// kaomoji
-// hover charcode info
 // box chars
 
 impl eframe::App for CharMap {
@@ -59,10 +55,8 @@ impl eframe::App for CharMap {
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-
             match self.mode {
                 Mode::Emoji => {
-
                     let font_id = egui::FontId::proportional(45.0);
                     egui::ScrollArea::vertical().show(ui, |ui| {
                         ui.horizontal_wrapped(|ui| {
@@ -80,9 +74,19 @@ impl eframe::App for CharMap {
                                     ui.label(format!("U+{:X}", chr as u32));
                                 };
 
-                                if ui.add(button).on_hover_ui(tooltip_ui).clicked() {
-                                    clipboard::set(self.input.to_owned());
+                                let response = ui.add(button).on_hover_ui(tooltip_ui);
+
+                                if response.clicked() {
+                                    clipboard::set(chr.to_string());
                                 }
+                                if response.double_clicked() {
+                                    _frame.close();
+                                }
+
+                                if response.secondary_clicked() {
+                                    self.input.push_str(&chr.to_string());
+                                }
+
                             }
                         });
                     });
