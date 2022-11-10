@@ -175,6 +175,7 @@ dependencies = [
  "copypasta-ext",
  "eframe",
  "egui",
+ "once_cell",
 ]
 
 [[package]]
