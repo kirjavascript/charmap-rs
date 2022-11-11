@@ -1,5 +1,7 @@
+mod blocks;
 mod clipboard;
 mod convert;
+
 use eframe::egui;
 use convert::Convert;
 
@@ -44,6 +46,7 @@ struct CharMap {
     last_copied: String,
     convert_type: Convert,
     convert_input: String,
+    block: std::ops::Range<u32>,
 }
 
 impl Default for CharMap {
@@ -53,6 +56,7 @@ impl Default for CharMap {
             last_copied: "".to_string(),
             convert_type: Convert::Aesthetic,
             convert_input: "".to_string(),
+            block: 0..0xff,
         }
     }
 }
@@ -64,10 +68,9 @@ enum Mode {
     Convert,
     Blocks,
     Misc,
-    EmojiTest,
 }
 
-// Blocks
+// Emoji/Blocks Symbols/Text
 // custom charcode / char explorer / read_chars
 // CJK
 // https://en.wikipedia.org/wiki/Mathematical_operators_and_symbols_in_Unicode
@@ -82,7 +85,7 @@ impl eframe::App for CharMap {
         egui::TopBottomPanel::top("mode select").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 use Mode::*;
-                for mode in [Kaomoji, EmojiTest, Convert, Misc] {
+                for mode in [Kaomoji, Blocks, Convert, Misc] {
                     let text = format!("{:?}", mode);
                     let color = if self.mode == mode {
                         egui::Color32::from_rgb(1, 93, 130)
@@ -106,16 +109,25 @@ impl eframe::App for CharMap {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             match self.mode {
-                Mode::EmojiTest => {
+                Mode::Blocks => {
                     egui::ScrollArea::vertical().show(ui, |ui| {
+                        egui::ComboBox::from_label("")
+                            .selected_text(format!("{:?}", self.block))
+                            .show_ui(ui, |ui| {
+                                for (range, name) in blocks::BLOCKS.iter() {
+                                    ui.selectable_value(&mut self.block, range.clone(), *name);
+                                }
+                            });
+
                         ui.horizontal_wrapped(|ui| {
                             ui.spacing_mut().item_spacing = egui::Vec2::splat(2.0);
 
-                            for i in 0x1f600..0x1f620 {
+                            for i in self.block.clone() {
                                 let chr = char::from_u32(i).unwrap().to_string();
                                 self.render_char(ui, &chr, &chr);
                             }
                         });
+
 
                         // let text_style = egui::TextStyle::Body;
 
@@ -193,9 +205,6 @@ impl eframe::App for CharMap {
                             ui.add(egui::TextEdit::singleline(&mut self.convert_input).desired_width(999.0));
                         });
                     });
-                },
-                Mode::Blocks => {
-
                 },
                 Mode::Misc => {
                     egui::ScrollArea::vertical().show(ui, |ui| {
