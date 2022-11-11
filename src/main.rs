@@ -60,12 +60,14 @@ impl Default for CharMap {
 
 #[derive(Debug, PartialEq)]
 enum Mode {
-    Emoji,
     Kaomoji,
     Convert,
+    Blocks,
     Misc,
+    EmojiTest,
 }
 
+// Blocks
 // custom charcode / char explorer / read_chars
 // CJK
 // https://en.wikipedia.org/wiki/Mathematical_operators_and_symbols_in_Unicode
@@ -80,7 +82,7 @@ impl eframe::App for CharMap {
         egui::TopBottomPanel::top("mode select").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 use Mode::*;
-                for mode in [Kaomoji, Emoji, Convert, Misc] {
+                for mode in [Kaomoji, EmojiTest, Convert, Misc] {
                     let text = format!("{:?}", mode);
                     let color = if self.mode == mode {
                         egui::Color32::from_rgb(1, 93, 130)
@@ -104,7 +106,7 @@ impl eframe::App for CharMap {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             match self.mode {
-                Mode::Emoji => {
+                Mode::EmojiTest => {
                     egui::ScrollArea::vertical().show(ui, |ui| {
                         ui.horizontal_wrapped(|ui| {
                             ui.spacing_mut().item_spacing = egui::Vec2::splat(2.0);
@@ -182,7 +184,7 @@ impl eframe::App for CharMap {
                                 .selected_text(format!("{:?}", self.convert_type))
                                 .show_ui(ui, |ui| {
                                     use Convert::*;
-                                    for ctype in [Aesthetic, Super, Flip] {
+                                    for ctype in [Aesthetic, Super, Flip, Italic] {
                                         let text = format!("{:?}", &ctype);
                                         ui.selectable_value(&mut self.convert_type, ctype, text);
                                     }
@@ -191,6 +193,9 @@ impl eframe::App for CharMap {
                             ui.add(egui::TextEdit::singleline(&mut self.convert_input).desired_width(999.0));
                         });
                     });
+                },
+                Mode::Blocks => {
+
                 },
                 Mode::Misc => {
                     egui::ScrollArea::vertical().show(ui, |ui| {

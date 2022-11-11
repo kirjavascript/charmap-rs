@@ -6,6 +6,7 @@ pub enum Convert {
     Aesthetic,
     Super,
     Flip,
+    Italic,
 }
 
 static ALPHABET: &str = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789()";
@@ -27,6 +28,16 @@ static SUPER: Lazy<HashMap<char, char>> = Lazy::new(|| {
     }
     m
 });
+
+static ITALIC: Lazy<HashMap<char, char>> = Lazy::new(|| {
+    let mut m = HashMap::new();
+    static CHARSET: &str = " 𝓐𝓑𝓒𝓓𝓔𝓕𝓖𝓗𝓘𝓙𝓚𝓛𝓜𝓝𝓞𝓟𝓠𝓡𝓢𝓣𝓤𝓥𝓦𝓧𝓨𝓩𝓪𝓫𝓬𝓭𝓮𝓯𝓰𝓱𝓲𝓳𝓴𝓵𝓶𝓷𝓸𝓹𝓺𝓻𝓼𝓽𝓾𝓿𝔀𝔁𝔂𝔃";
+    for (key, value) in ALPHABET.chars().zip(CHARSET.chars()) {
+        m.insert(key, value);
+    }
+    m
+});
+
 
 static FLIP: Lazy<HashMap<char, char>> = Lazy::new(|| {
     let mut m = HashMap::new();
@@ -56,6 +67,11 @@ impl Convert {
             Convert::Super => {
                 text.chars()
                     .map(|ch| SUPER.get(&ch).unwrap_or(&'?'))
+                    .collect::<String>()
+            },
+            Convert::Italic => {
+                text.chars()
+                    .map(|ch| ITALIC.get(&ch).unwrap_or(&'?'))
                     .collect::<String>()
             },
         }
