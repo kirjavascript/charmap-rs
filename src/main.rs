@@ -1,4 +1,5 @@
 mod blocks;
+mod chars;
 mod clipboard;
 mod convert;
 
@@ -46,6 +47,7 @@ struct CharMap {
     last_copied: String,
     convert_type: Convert,
     convert_input: String,
+    chars: String,
     block: std::ops::Range<u32>,
 }
 
@@ -56,7 +58,8 @@ impl Default for CharMap {
             last_copied: "".to_string(),
             convert_type: Convert::Aesthetic,
             convert_input: "".to_string(),
-            block: 0..0xff,
+            chars: "A".to_string(),
+            block: blocks::BLOCKS[0].0.clone(),
         }
     }
 }
@@ -65,12 +68,13 @@ impl Default for CharMap {
 #[derive(Debug, PartialEq)]
 enum Mode {
     Kaomoji,
-    Convert,
     Blocks,
+    Chars,
+    ConvertText,
     Misc,
 }
 
-// Emoji/Blocks Symbols/Text
+// Char (by index / paste)
 // custom charcode / char explorer / read_chars
 // CJK
 // https://en.wikipedia.org/wiki/Mathematical_operators_and_symbols_in_Unicode
@@ -85,7 +89,7 @@ impl eframe::App for CharMap {
         egui::TopBottomPanel::top("mode select").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 use Mode::*;
-                for mode in [Kaomoji, Blocks, Convert, Misc] {
+                for mode in [Kaomoji, Blocks, Chars, ConvertText, Misc] {
                     let text = format!("{:?}", mode);
                     let color = if self.mode == mode {
                         egui::Color32::from_rgb(1, 93, 130)
@@ -110,7 +114,7 @@ impl eframe::App for CharMap {
         egui::CentralPanel::default().show(ctx, |ui| {
             match self.mode {
                 Mode::Blocks => {
-                    egui::ScrollArea::vertical().show(ui, |ui| {
+                    ui.horizontal(|ui| {
                         egui::ComboBox::from_label("")
                             .selected_text(format!("{:?}", self.block))
                             .show_ui(ui, |ui| {
@@ -118,6 +122,10 @@ impl eframe::App for CharMap {
                                     ui.selectable_value(&mut self.block, range.clone(), *name);
                                 }
                             });
+
+                        ui.add(egui::TextEdit::singleline(&mut self.convert_input).desired_width(999.0));
+                    });
+                    egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
 
                         ui.horizontal_wrapped(|ui| {
                             ui.spacing_mut().item_spacing = egui::Vec2::splat(2.0);
@@ -148,6 +156,38 @@ impl eframe::App for CharMap {
                         //     }
                         // });
                     });
+
+                },
+                Mode::Chars => {
+                    ui.horizontal(|ui| {
+                        ui.label(format!("len: {}", self.chars.len()));
+
+                        ui.add(egui::TextEdit::singleline(&mut self.chars));
+                    });
+
+                    // TODO: widget with own state
+                    // ADD NEW
+
+                    for chr in self.chars.chars() {
+                        let glyph = egui::RichText::new(chr.to_string()).font(egui::FontId::monospace(60.0));
+                        let chr = chr as u32;
+
+                        ui.horizontal(|ui| {
+                            ui.label(glyph);
+                            ui.label(format!("{}", chr));
+                            ui.label(format!("0x{:x}", chr));
+                            ui.label(format!("{:?}", chars::UNICODE.get(&chr)));
+
+                            // let mut chr: String = chr.to_string();
+
+                            // ui.add(egui::TextEdit::singleline(&mut chr));
+                        });
+
+
+                    }
+
+
+
 
                 },
                 Mode::Kaomoji => {
@@ -183,7 +223,7 @@ impl eframe::App for CharMap {
                         });
                     });
                 },
-                Mode::Convert => {
+                Mode::ConvertText => {
                     egui::ScrollArea::vertical().show(ui, |ui| {
                         let converted = self.convert_type.convert(&self.convert_input);
                         let text = egui::RichText::new(converted.clone()).size(39.0);

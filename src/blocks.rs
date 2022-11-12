@@ -1,6 +1,9 @@
 // https://www.unicode.org/Public/UNIDATA/Blocks.txt
+// https://www.unicode.org/Public/UNIDATA/UnicodeData.txt
 // https://www.unicode.org/charts/
-pub static BLOCKS: [(std::ops::Range<u32>, &str); 327] = [
+
+pub type Block<'a> = (std::ops::Range<u32>, &'a str);
+pub static BLOCKS: [Block; 327] = [
     (0x0000..0x007F, "Basic Latin"),
     (0x0080..0x00FF, "Latin-1 Supplement"),
     (0x0100..0x017F, "Latin Extended-A"),
