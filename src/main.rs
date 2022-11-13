@@ -182,6 +182,10 @@ impl eframe::App for CharMap {
 
                     ui.add(egui::TextEdit::singleline(&mut self.chars_index));
 
+                    // labels:
+                    // fromHex
+                    // fromDecimal
+
                     match i64::from_str_radix(&self.chars_index, 16) {
                         Ok(index) => {
                             ui.label(format!("{:?}", chars::UNICODE.get(&(index as u32))));
