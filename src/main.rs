@@ -48,6 +48,7 @@ struct CharMap {
     convert_type: Convert,
     convert_input: String,
     chars: String,
+    chars_index: String,
     block: std::ops::Range<u32>,
 }
 
@@ -59,6 +60,7 @@ impl Default for CharMap {
             convert_type: Convert::Aesthetic,
             convert_input: "".to_string(),
             chars: "A".to_string(),
+            chars_index: "".to_string(),
             block: blocks::BLOCKS[0].0.clone(),
         }
     }
@@ -165,9 +167,6 @@ impl eframe::App for CharMap {
                         ui.add(egui::TextEdit::singleline(&mut self.chars));
                     });
 
-                    // TODO: widget with own state
-                    // ADD NEW
-
                     for chr in self.chars.chars() {
                         let glyph = egui::RichText::new(chr.to_string()).font(egui::FontId::monospace(60.0));
                         let chr = chr as u32;
@@ -178,16 +177,19 @@ impl eframe::App for CharMap {
                             ui.label(format!("0x{:x}", chr));
                             ui.label(format!("{:?}", chars::UNICODE.get(&chr)));
 
-                            // let mut chr: String = chr.to_string();
-
-                            // ui.add(egui::TextEdit::singleline(&mut chr));
                         });
-
-
                     }
 
+                    ui.add(egui::TextEdit::singleline(&mut self.chars_index));
 
-
+                    match i64::from_str_radix(&self.chars_index, 16) {
+                        Ok(index) => {
+                            ui.label(format!("{:?}", chars::UNICODE.get(&(index as u32))));
+                        },
+                        Err(err) => {
+                            ui.label(format!("{:?}", err));
+                        },
+                    }
 
                 },
                 Mode::Kaomoji => {
