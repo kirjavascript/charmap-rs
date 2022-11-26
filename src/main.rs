@@ -76,8 +76,6 @@ enum Mode {
     Misc,
 }
 
-// Char (by index / paste)
-// custom charcode / char explorer / read_chars
 // CJK
 // https://en.wikipedia.org/wiki/Mathematical_operators_and_symbols_in_Unicode
 
@@ -162,7 +160,32 @@ impl eframe::App for CharMap {
                 },
                 Mode::Chars => {
                     ui.horizontal(|ui| {
-                        ui.label(format!("len: {}", self.chars.len()));
+                        ui.label("toChar");
+
+                        ui.add(egui::TextEdit::singleline(&mut self.chars_index));
+                    });
+
+                    ui.vertical(|ui| {
+                        let mut draw_label = |index, radix, name| {
+                            ui.label(format!("{}", name));
+                            match i64::from_str_radix(index, radix) {
+                                Ok(index) => {
+                                    let chr = char::from_u32(index as u32).unwrap_or('?');
+                                    let glyph = egui::RichText::new(chr.to_string()).font(egui::FontId::monospace(60.0));
+                                    ui.label(glyph);
+                                    ui.label(format!("{} 0x{:x} {:?}", index, index, chars::UNICODE.get(&(index as u32))));
+                                },
+                                Err(err) => {
+                                    ui.label(format!("{:?}", err));
+                                },
+                            }
+                        };
+                        draw_label(&self.chars_index, 10, "fromDecimal");
+                        draw_label(&self.chars_index, 16, "fromHex");
+                    });
+
+                    ui.horizontal(|ui| {
+                        ui.label(format!("fromChars {}", self.chars.len()));
 
                         ui.add(egui::TextEdit::singleline(&mut self.chars));
                     });
@@ -176,25 +199,8 @@ impl eframe::App for CharMap {
                             ui.label(format!("{}", chr));
                             ui.label(format!("0x{:x}", chr));
                             ui.label(format!("{:?}", chars::UNICODE.get(&chr)));
-
                         });
                     }
-
-                    ui.add(egui::TextEdit::singleline(&mut self.chars_index));
-
-                    // labels:
-                    // fromHex
-                    // fromDecimal
-
-                    match i64::from_str_radix(&self.chars_index, 16) {
-                        Ok(index) => {
-                            ui.label(format!("{:?}", chars::UNICODE.get(&(index as u32))));
-                        },
-                        Err(err) => {
-                            ui.label(format!("{:?}", err));
-                        },
-                    }
-
                 },
                 Mode::Kaomoji => {
                     egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
@@ -210,6 +216,9 @@ impl eframe::App for CharMap {
                                 "(⌐■_■)",
                                 "ಠ_ಠ",
                                 "ʘ︵ʘ",
+                                "(ಥ﹏ಥ)",
+                                "(⊙_⊙)",
+ 	                        "(*μ_μ)",
                                 "(╯°□°) ╯︵ ┻━┻",
                                 "ヘ (°□。) ヘ",
                                 "( ͡° ͜ʖ ͡°)",
