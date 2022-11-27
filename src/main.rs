@@ -111,7 +111,7 @@ impl eframe::App for CharMap {
             });
         });
 
-        egui::CentralPanel::default().show(ctx, |ui| {
+        egui::CentralPanel::default().show(ctx, |mut ui| {
             match self.mode {
                 Mode::Blocks => {
                     ui.horizontal(|ui| {
@@ -165,15 +165,20 @@ impl eframe::App for CharMap {
                         ui.add(egui::TextEdit::singleline(&mut self.chars_index));
                     });
 
-                    ui.vertical(|ui| {
+                    let draw_glyph_info = |ui: &mut egui::Ui, index: u32, chr: char| {
+                        ui.horizontal(|ui| {
+                            ui.label(egui::RichText::new(chr).font(egui::FontId::monospace(60.0)));
+                            ui.label(format!("{} 0x{:x} {:?}", index, index, chars::UNICODE.get(&index)));
+                        }).response
+                    };
+
+                    ui.vertical(|mut ui| {
                         let mut draw_label = |index, radix, name| {
                             ui.label(format!("{}", name));
                             match i64::from_str_radix(index, radix) {
                                 Ok(index) => {
-                                    let chr = char::from_u32(index as u32).unwrap_or('?');
-                                    let glyph = egui::RichText::new(chr.to_string()).font(egui::FontId::monospace(60.0));
-                                    ui.label(glyph);
-                                    ui.label(format!("{} 0x{:x} {:?}", index, index, chars::UNICODE.get(&(index as u32))));
+                                    let index = index as u32;
+                                    draw_glyph_info(&mut ui, index, char::from_u32(index).unwrap_or('?'));
                                 },
                                 Err(err) => {
                                     ui.label(format!("{:?}", err));
@@ -191,15 +196,7 @@ impl eframe::App for CharMap {
                     });
 
                     for chr in self.chars.chars() {
-                        let glyph = egui::RichText::new(chr.to_string()).font(egui::FontId::monospace(60.0));
-                        let chr = chr as u32;
-
-                        ui.horizontal(|ui| {
-                            ui.label(glyph);
-                            ui.label(format!("{}", chr));
-                            ui.label(format!("0x{:x}", chr));
-                            ui.label(format!("{:?}", chars::UNICODE.get(&chr)));
-                        });
+                        draw_glyph_info(&mut ui, chr as u32, chr);
                     }
                 },
                 Mode::Kaomoji => {
